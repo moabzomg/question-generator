@@ -25,6 +25,9 @@ export default function Files() {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [csvChecked, setCsvChecked] = useState(false);
+
+  const [quizTitles, setQuizTitles] = useState<string[]>([]);
+  const [selectedTitles, setSelectedTitles] = useState<string[]>([]);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const [numberOfQuestions, setNumberOfQuestions] = useState(0);
   const [shuffleQuestions, setShuffleQuestions] = useState(true);
@@ -61,7 +64,9 @@ export default function Files() {
     setFiles([]);
     setQuestions([]);
     setIsLoading(false);
+    setSelectedTitles([]);
     setCsvChecked(false);
+    setQuizTitles([]);
     setQuizReady(false);
   };
 
@@ -104,7 +109,12 @@ export default function Files() {
         };
       })
       .filter(Boolean); // Remove null values
-
+    const uniqueTitles = [
+      ...new Set(
+        (formattedQuestions as { title: string }[]).map((q) => q.title)
+      ),
+    ];
+    setQuizTitles(uniqueTitles);
     setIsLoading(false);
 
     if (formattedQuestions.length === 0) {
@@ -135,8 +145,17 @@ export default function Files() {
   };
 
   const handleGenerateQuiz = () => {
+    const filteredQuestions = questions.filter((q) =>
+      selectedTitles.includes(q.title)
+    );
+    if (filteredQuestions.length === 0) {
+      toast.error(
+        "No questions selected. Please check at least one quiz title."
+      );
+      return;
+    }
     // Apply settings and pass the questions and settings to the Quiz component
-    const randomizedQuestions = [...questions];
+    const randomizedQuestions = [...filteredQuestions];
 
     // Shuffle questions if necessary
     if (shuffleQuestions) {
@@ -306,6 +325,24 @@ export default function Files() {
                 />
                 Show answer and explanation after each question
               </div>
+              <h3 className="text-lg font-bold">Select Quizzes</h3>
+              {quizTitles.map((title) => (
+                <div key={title} className="flex items-center">
+                  <input
+                    type="checkbox"
+                    checked={selectedTitles.includes(title)}
+                    onChange={() =>
+                      setSelectedTitles((prev) =>
+                        prev.includes(title)
+                          ? prev.filter((t) => t !== title)
+                          : [...prev, title]
+                      )
+                    }
+                    className="mr-2"
+                  />
+                  {title}
+                </div>
+              ))}
             </div>
             <div className="mt-6 flex justify-between">
               <Button
