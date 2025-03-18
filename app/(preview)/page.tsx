@@ -18,6 +18,15 @@ import { Progress } from "@/components/ui/progress";
 import Quiz from "@/components/quiz";
 import Papa from "papaparse";
 
+interface QuizData {
+  "Quiz title": string;
+  "HTML of the question": string;
+  Answer: string;
+  Options: string;
+  "HTML of the explanation": string;
+  "Question Type": string;
+}
+
 export default function Files() {
   const [files, setFiles] = useState<File[]>([]);
   const [questions, setQuestions] = useState<z.infer<typeof questionsSchema>>(
@@ -74,7 +83,7 @@ export default function Files() {
     setIsLoading(true);
     setCsvChecked(false);
 
-    const parsedData = await parseCSV(file);
+    const parsedData = (await parseCSV(file)) as QuizData[];
     const formattedQuestions = parsedData
       .map((row: any) => {
         const title = row["Quiz title"]?.trim();
@@ -82,21 +91,21 @@ export default function Files() {
         const answer = row["Answer"]?.trim();
         const options = row["Options, separated by |"]
           ?.split("|")
-          .map((option) => option.trim());
+          .map((option: string) => option.trim());
         const explanation =
           row["HTML of the explanation to the answer"]?.trim();
-        const type = row["Question type"]?.trim();
+        const type = row["Question Type"]?.trim();
 
+        // Return null if required fields are missing
         if (
           !title ||
           !question ||
           !answer ||
           !options ||
-          options.length !== 4 ||
           !explanation ||
           !type
         ) {
-          return null; // Skip invalid questions
+          return null;
         }
 
         return {
@@ -108,12 +117,15 @@ export default function Files() {
           type,
         };
       })
-      .filter(Boolean); // Remove null values
+      .filter((question) => question !== null); // Filter out null values
+
+    // Assuming setQuizTitles expects an array of strings
     const uniqueTitles = [
       ...new Set(
         (formattedQuestions as { title: string }[]).map((q) => q.title)
       ),
     ];
+
     setQuizTitles(uniqueTitles);
     setIsLoading(false);
 
@@ -125,10 +137,16 @@ export default function Files() {
       toast.success(
         `CSV checked: ${formattedQuestions.length} question(s) found.`
       );
-      setQuestions(formattedQuestions);
-      setCsvChecked(true);
-      setNumberOfQuestions(formattedQuestions.length); // Set number of questions after loading
-      setShowSettingsDialog(true); // Show settings dialog
+      setQuestions(
+        formattedQuestions as {
+          title: string;
+          question: string;
+          options: string[];
+          type: string;
+          answer: string;
+          explanation: string;
+        }[]
+      );
     }
   };
 
