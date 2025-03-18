@@ -1,0 +1,9 @@
+Quiz title,HTML of the question,Answer,"Options, separated by |",HTML of the explanation to the answer,Question type
+Basic Math Quiz,"<p>What is 5 + 8?</p>",B,12|13|14|15,"<p>Adding 5 and 8 gives you 13. You can verify this by counting up from 5: 6, 7, 8, 9, 10, 11, 12, 13.</p>",mc14
+Basic Math Quiz,<p>What is 7 × 6?</p>,A,42|36|48|54,<p>Multiplying 7 by 6 equals 42. You can think of this as adding 7 six times: 7 + 7 + 7 + 7 + 7 + 7 = 42.</p>,mc14
+Basic Math Quiz,<p>What is 15 - 9?</p>,B,4|6|5|7,"<p>Subtracting 9 from 15 leaves you with 6. You can verify this by counting down from 15: 14, 13, 12, 11, 10, 9, 8, 7, 6.</p>",mc14
+Basic Math Quiz,<p>What is 9 ÷ 3?</p>,B,2|3|4|5,"<p>Dividing 9 by 3 gives you 3. This means that if you have 9 items and you divide them into 3 equal groups, each group will have 3 items.</p>",mc14
+Basic English Quiz,<p>What is the plural of 'child'?</p>,C,Childs|Childes|Children|Childrens,<p>The correct plural form of 'child' is 'children' because it is an irregular noun.</p>,mc14
+Basic English Quiz,<p>Which word is a noun?</p>,C,Run|Happy|Table|Quickly,"<p>'Table' is a noun, while 'run' is a verb, 'happy' is an adjective, and 'quickly' is an adverb.</p>",mc14
+Basic English Quiz,<p>Which sentence is grammatically correct?</p>,D,She don't like pizza|He go to school every day|They was playing football|She sings beautifully,'She sings beautifully' is correct because 'sings' agrees with 'she'.,mc14
+Basic English Quiz,<p>What is the past tense of 'eat'?</p>,B,Eated|Ate|Eating|Eats,"<p>The correct past tense of 'eat' is 'ate', not 'eated'.</p>",mc14

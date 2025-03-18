@@ -16,8 +16,7 @@ import { Question } from "@/lib/schemas";
 
 type QuizProps = {
   questions: Question[];
-  clearPDF: () => void;
-  title: string;
+  clearCSV: () => void;
 };
 
 const QuestionCard: React.FC<{
@@ -28,12 +27,12 @@ const QuestionCard: React.FC<{
   showCorrectAnswer: boolean;
 }> = ({ question, selectedAnswer, onSelectAnswer, showCorrectAnswer }) => {
   const answerLabels = ["A", "B", "C", "D"];
-
   return (
     <div className="space-y-6">
-      <h2 className="text-lg font-semibold leading-tight">
-        {question.question}
-      </h2>
+      <h2
+        className="text-lg font-semibold leading-tight"
+        dangerouslySetInnerHTML={{ __html: question.question }}
+      />
       <div className="grid grid-cols-1 gap-4">
         {question.options.map((option, index) => (
           <Button
@@ -45,10 +44,10 @@ const QuestionCard: React.FC<{
               showCorrectAnswer && answerLabels[index] === question.answer
                 ? "bg-green-600 hover:bg-green-700"
                 : showCorrectAnswer &&
-                    selectedAnswer === answerLabels[index] &&
-                    selectedAnswer !== question.answer
-                  ? "bg-red-600 hover:bg-red-700"
-                  : ""
+                  selectedAnswer === answerLabels[index] &&
+                  selectedAnswer !== question.answer
+                ? "bg-red-600 hover:bg-red-700"
+                : ""
             }`}
             onClick={() => onSelectAnswer(answerLabels[index])}
           >
@@ -72,14 +71,10 @@ const QuestionCard: React.FC<{
   );
 };
 
-export default function Quiz({
-  questions,
-  clearPDF,
-  title = "Quiz",
-}: QuizProps) {
+export default function Quiz({ questions, clearCSV }: QuizProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>(
-    Array(questions.length).fill(null),
+    Array(questions.length).fill(null)
   );
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
@@ -135,14 +130,23 @@ export default function Quiz({
   return (
     <div className="min-h-screen bg-background text-foreground">
       <main className="container mx-auto px-4 py-12 max-w-4xl">
-        <h1 className="text-3xl font-bold mb-8 text-center text-foreground">
-          {title}
-        </h1>
+        {/* Conditionally render the title and question type */}
+        {!isSubmitted && (
+          <>
+            <h1 className="text-3xl font-bold mb-8 text-center text-foreground">
+              Question {currentQuestionIndex + 1}: {currentQuestion.title}
+            </h1>
+            <div className="text-center mb-4">
+              {currentQuestion.type === "mc14" && (
+                <div>Choose 1 answer from the available options</div>
+              )}
+            </div>
+          </>
+        )}
+
         <div className="relative">
           {!isSubmitted && <Progress value={progress} className="h-1 mb-8" />}
           <div className="min-h-[400px]">
-            {" "}
-            {/* Prevent layout shift */}
             <AnimatePresence mode="wait">
               <motion.div
                 key={isSubmitted ? "results" : currentQuestionIndex}
@@ -191,6 +195,15 @@ export default function Quiz({
                     />
                     <div className="space-y-12">
                       <QuizReview questions={questions} userAnswers={answers} />
+                      {currentQuestion.answer ===
+                        answers[currentQuestionIndex] && (
+                        <div
+                          className="mt-4"
+                          dangerouslySetInnerHTML={{
+                            __html: currentQuestion.explanation,
+                          }}
+                        />
+                      )}
                     </div>
                     <div className="flex justify-center space-x-4 pt-4">
                       <Button
@@ -201,10 +214,10 @@ export default function Quiz({
                         <RefreshCw className="mr-2 h-4 w-4" /> Reset Quiz
                       </Button>
                       <Button
-                        onClick={clearPDF}
+                        onClick={clearCSV}
                         className="bg-primary hover:bg-primary/90 w-full"
                       >
-                        <FileText className="mr-2 h-4 w-4" /> Try Another PDF
+                        <FileText className="mr-2 h-4 w-4" /> Try Another CSV
                       </Button>
                     </div>
                   </div>
