@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { questionsSchema } from "@/lib/schemas";
+import { Question, questionsSchema } from "@/lib/schemas";
 import { z } from "zod";
 import { toast } from "sonner";
 import { Loader2 } from "lucide-react";
@@ -25,6 +25,13 @@ export default function Files() {
   );
   const [isLoading, setIsLoading] = useState(false);
   const [csvChecked, setCsvChecked] = useState(false);
+  const [showSettingsDialog, setShowSettingsDialog] = useState(false);
+  const [numberOfQuestions, setNumberOfQuestions] = useState(0);
+  const [shuffleQuestions, setShuffleQuestions] = useState(true);
+  const [shuffleAnswers, setShuffleAnswers] = useState(true);
+  const [showAnswer, setShowAnswer] = useState(true);
+  const [quizReady, setQuizReady] = useState(false); // Track quiz rendering
+  const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -55,11 +62,8 @@ export default function Files() {
     setQuestions([]);
     setIsLoading(false);
     setCsvChecked(false);
+    setQuizReady(false);
   };
-
-  if (questions.length !== 0) {
-    return <Quiz title="Quiz" questions={questions} clearCSV={clearCSV} />;
-  }
 
   const handleCheckCSV = async (file: File) => {
     setIsLoading(true);
@@ -113,6 +117,8 @@ export default function Files() {
       );
       setQuestions(formattedQuestions);
       setCsvChecked(true);
+      setNumberOfQuestions(formattedQuestions.length); // Set number of questions after loading
+      setShowSettingsDialog(true); // Show settings dialog
     }
   };
 
@@ -128,9 +134,58 @@ export default function Files() {
     }
   };
 
+  const handleGenerateQuiz = () => {
+    // Apply settings and pass the questions and settings to the Quiz component
+    const randomizedQuestions = [...questions];
+
+    // Shuffle questions if necessary
+    if (shuffleQuestions) {
+      randomizedQuestions.sort(() => Math.random() - 0.5);
+    }
+    if (shuffleAnswers) {
+      randomizedQuestions.forEach((question) => {
+        // Determine the index of the correct answer in the original options
+        const correctAnswerIndex = ["A", "B", "C", "D"].indexOf(
+          question.answer
+        );
+
+        // Shuffle the options (create a copy to avoid mutating the original array)
+        const shuffledOptions = [...question.options].sort(
+          () => Math.random() - 0.5
+        );
+
+        // After shuffle, find the new index of the original correct answer in the shuffled options
+        const newCorrectAnswerIndex = shuffledOptions.indexOf(
+          question.options[correctAnswerIndex]
+        );
+
+        // Update the question's options and set the new correct answer based on the shuffled order
+        question.options = shuffledOptions;
+        question.answer = ["A", "B", "C", "D"][newCorrectAnswerIndex];
+      });
+    }
+
+    // Take only the selected number of questions
+    const selectedQuestions = randomizedQuestions.slice(0, numberOfQuestions);
+
+    // Update the selected questions state
+    setSelectedQuestions(selectedQuestions);
+    setQuizReady(true); // Set quiz ready to true
+    setShowSettingsDialog(false); // Close settings dialog after quiz generation
+  };
+  if (quizReady) {
+    return (
+      <Quiz
+        questions={selectedQuestions}
+        clearCSV={clearCSV}
+        showAnswer={showAnswer}
+      />
+    );
+  }
+
   return (
     <div className="min-h-[100dvh] w-full flex justify-center">
-      <Card className="w-full max-w-md h-full border-0 sm:border sm:h-fit mt-12 p-6 shadow-lg rounded-lg">
+      <Card className="w-full max-w-4xl h-full border-0 sm:border sm:h-fit mt-12 p-6 shadow-lg rounded-lg">
         <CardHeader className="text-center space-y-4">
           <CardTitle className="text-2xl font-bold">
             📂 Quiz Generator
@@ -165,6 +220,10 @@ export default function Files() {
                 choices).
               </li>
             </ul>
+          </div>
+          <div className="text-center text-sm text-gray-200 mt-6">
+            You may also try our template with basic maths and English
+            questions.
           </div>
           <div className="mt-4">
             <a
@@ -203,6 +262,70 @@ export default function Files() {
           </CardFooter>
         )}
       </Card>
+      {showSettingsDialog && (
+        <div className="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-50 flex justify-center items-center z-10">
+          <Card className="w-128 p-6 bg-white rounded-lg shadow-xl">
+            <CardTitle className="text-2xl mb-4">Quiz Settings</CardTitle>
+            <div className="space-y-4 text-gray-900">
+              <div>
+                <label className="block">Number of Questions</label>
+                <input
+                  type="range"
+                  min="1"
+                  max={questions.length}
+                  value={numberOfQuestions}
+                  onChange={(e) => setNumberOfQuestions(Number(e.target.value))}
+                  className="w-full"
+                />
+                <span>{numberOfQuestions} questions</span>
+              </div>
+              <div>
+                <input
+                  type="checkbox"
+                  checked={shuffleQuestions}
+                  onChange={() => setShuffleQuestions(!shuffleQuestions)}
+                  className="mr-2"
+                />
+                Shuffle questions
+              </div>
+              <div>
+                <input
+                  type="checkbox"
+                  checked={shuffleAnswers}
+                  onChange={() => setShuffleAnswers(!shuffleAnswers)}
+                  className="mr-2"
+                />
+                Shuffle answer options
+              </div>
+              <div>
+                <input
+                  type="checkbox"
+                  checked={showAnswer}
+                  onChange={() => setShowAnswer(!showAnswer)}
+                  className="mr-2"
+                />
+                Show answer and explanation after each question
+              </div>
+            </div>
+            <div className="mt-6 flex justify-between">
+              <Button
+                onClick={() => setShowSettingsDialog(false)}
+                variant="secondary"
+              >
+                Cancel
+              </Button>
+              <Button
+                onClick={() => {
+                  setShowSettingsDialog(false);
+                  handleGenerateQuiz(); // Generate quiz after settings
+                }}
+              >
+                Apply & Start Quiz
+              </Button>
+            </div>
+          </Card>
+        </div>
+      )}
     </div>
   );
 }

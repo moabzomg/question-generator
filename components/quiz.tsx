@@ -17,6 +17,7 @@ import { Question } from "@/lib/schemas";
 type QuizProps = {
   questions: Question[];
   clearCSV: () => void;
+  showAnswer: boolean;
 };
 
 const QuestionCard: React.FC<{
@@ -71,7 +72,8 @@ const QuestionCard: React.FC<{
   );
 };
 
-export default function Quiz({ questions, clearCSV }: QuizProps) {
+export default function Quiz({ questions, clearCSV, showAnswer }: QuizProps) {
+  console.log(questions, showAnswer);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<string[]>(
     Array(questions.length).fill(null)
@@ -211,13 +213,13 @@ export default function Quiz({ questions, clearCSV }: QuizProps) {
                         variant="outline"
                         className="bg-muted hover:bg-muted/80 w-full"
                       >
-                        <RefreshCw className="mr-2 h-4 w-4" /> Reset Quiz
+                        <RefreshCw className="mr-2 h-4 w-4" /> Try the Same Quiz
                       </Button>
                       <Button
                         onClick={clearCSV}
                         className="bg-primary hover:bg-primary/90 w-full"
                       >
-                        <FileText className="mr-2 h-4 w-4" /> Try Another CSV
+                        <FileText className="mr-2 h-4 w-4" /> Try Another Quiz
                       </Button>
                     </div>
                   </div>
