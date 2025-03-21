@@ -58,8 +58,3 @@ Here's an example of what your CSV file should look like:
 
 - You can try a basic Math and English quiz template for quick testing.
 - Customize the quiz generation settings like the number of questions, whether to shuffle answers, and if explanations should be displayed.
-
-| First Header | Second Header |
-| ------------ | ------------- |
-| Content Cell | Content Cell  |
-| Content Cell | Content Cell  |
