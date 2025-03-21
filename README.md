@@ -49,10 +49,10 @@ For the HTML of the questions or the explanation, you may simply fill in with th
 
 Here's an example of what your CSV file should look like:
 
-| Quiz Title   | HTML of the Question                         | Answer | Options | HTML of the Explanation | Question Type |
-| ------------ | -------------------------------------------- | ------ | ------- | ----------------------- | ------------- | --- | ------------------------------------------------------------------ | ---- |
-| Math Quiz    | `<p>What is 2 + 2?</p>`                      | A      | 3       | 4                       | 5             | 6   | `<p>The correct answer is 4 because 2 + 2 equals 4.</p>`           | mc14 |
-| Science Quiz | `<p>What is the boiling point of water?</p>` | B      | 100     | 90                      | 120           | 80  | `<p>Water boils at 100°C under standard atmospheric pressure.</p>` | mc14 |
+| Quiz Title   | HTML of the Question                         | Answer | Options                | HTML of the Explanation                                            | Question Type |
+| ------------ | -------------------------------------------- | ------ | ---------------------- | ------------------------------------------------------------------ | ------------- |
+| Math Quiz    | `<p>What is 2 + 2?</p>`                      | A      | 3 \| 4 \| 5 \| 6       | `<p>The correct answer is 4 because 2 + 2 equals 4.</p>`           | mc14          |
+| Science Quiz | `<p>What is the boiling point of water?</p>` | B      | 100 \| 90 \| 120 \| 80 | `<p>Water boils at 100°C under standard atmospheric pressure.</p>` | mc14          |
 
 ### Additional Features
 
