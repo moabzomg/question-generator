@@ -1,6 +1,6 @@
 # Quiz Generator by Importing CSV
 
-![Home page](Home.png)
+![Home page](./Home.png)
 
 The Quiz Generator allows you to randomly create quizzes by importing a CSV file containing a question bank. The CSV must have the following header row:
 
@@ -35,7 +35,7 @@ For the HTML of the questions or the explanation, you may simply fill in with th
    - A list of quiz titles from the CSV will be displayed. Select the quiz titles you want to include in the quiz by checking the box next to each title.
    - The questions under the selected quiz titles will be shown.
 
-![Quiz settings](Settings.png)
+![Quiz settings](./Settings.png)
 
 4. **Adjust Settings (Optional)**
 
@@ -50,11 +50,11 @@ For the HTML of the questions or the explanation, you may simply fill in with th
 6. **Take the Quiz**  
    You will be redirected to the quiz interface where you can answer the questions and view explanations if enabled.
 
-![Quiz](Quiz.png)
+![Quiz](./Quiz.png)
 
 7. ** View the Result **
 
-![Result](Result.png)
+![Result](./Result.png)
 
 ### Example CSV Format
 

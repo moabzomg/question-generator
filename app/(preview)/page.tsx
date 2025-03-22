@@ -17,8 +17,6 @@ import {
 import { Progress } from "@/components/ui/progress";
 import Quiz from "@/components/quiz";
 import Papa from "papaparse";
-import { format } from "node:util";
-import { parse } from "node:path";
 
 interface QuizData {
   "Quiz title": string;
