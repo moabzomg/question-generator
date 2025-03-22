@@ -17,6 +17,8 @@ import {
 import { Progress } from "@/components/ui/progress";
 import Quiz from "@/components/quiz";
 import Papa from "papaparse";
+import { format } from "node:util";
+import { parse } from "node:path";
 
 interface QuizData {
   "Quiz title": string;
@@ -84,6 +86,7 @@ export default function Files() {
     setCsvChecked(false);
 
     const parsedData = (await parseCSV(file)) as QuizData[];
+    console.log(parsedData);
     const formattedQuestions = parsedData
       .map((row: any) => {
         const title = row["Quiz title"]?.trim();
@@ -118,15 +121,8 @@ export default function Files() {
         };
       })
       .filter((question) => question !== null); // Filter out null values
+    console.log(formattedQuestions);
 
-    // Assuming setQuizTitles expects an array of strings
-    const uniqueTitles = [
-      ...new Set(
-        (formattedQuestions as { title: string }[]).map((q) => q.title)
-      ),
-    ];
-
-    setQuizTitles(uniqueTitles);
     setIsLoading(false);
 
     if (formattedQuestions.length === 0) {
@@ -243,10 +239,10 @@ export default function Files() {
                 HTML formatting.
               </li>
               <li>
-                <b>Options (separated by |):</b> Four possible answer choices.
+                <b>Options (separated by |):</b> Possible answer choices.
               </li>
               <li>
-                <b>Answer:</b> The correct answer (A, B, C, or D).
+                <b>Answer:</b> The correct answer.
               </li>
               <li>
                 <b>HTML of the explanation:</b> A detailed explanation of the

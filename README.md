@@ -38,6 +38,7 @@ For the HTML of the questions or the explanation, you may simply fill in with th
    - You can customize the number of questions to include in the quiz using a range slider.
    - Choose whether to shuffle the questions and the answer options.
    - Toggle whether to show the answer and explanation after each question.
+   - Filter questions by quiz titles.
 
 5. **Generate Quiz**  
    Once you're happy with your settings, click on the _Apply & Start Quiz_ button to generate your quiz.
@@ -58,3 +59,15 @@ Here's an example of what your CSV file should look like:
 
 - You can try a basic Math and English quiz template for quick testing.
 - Customize the quiz generation settings like the number of questions, whether to shuffle answers, and if explanations should be displayed.
+
+## How to Run
+
+1. Install dependencies:
+   ```
+   npm install
+   npm install motion
+   ```
+2. Start the application
+   ```
+   npm start
+   ```
