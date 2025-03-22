@@ -40,12 +40,16 @@ export default function Files() {
   const [quizTitles, setQuizTitles] = useState<string[]>([]);
   const [selectedTitles, setSelectedTitles] = useState<string[]>([]);
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
-  const [numberOfQuestions, setNumberOfQuestions] = useState(0);
+  const [numberOfQuestions, setNumberOfQuestions] = useState(1);
   const [shuffleQuestions, setShuffleQuestions] = useState(true);
   const [shuffleAnswers, setShuffleAnswers] = useState(true);
   const [showAnswer, setShowAnswer] = useState(true);
   const [quizReady, setQuizReady] = useState(false); // Track quiz rendering
   const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
+
+  useEffect(() => {
+    setSelectedTitles(quizTitles); // Set all titles as selected on mount
+  }, [quizTitles]);
 
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -86,7 +90,6 @@ export default function Files() {
     setCsvChecked(false);
 
     const parsedData = (await parseCSV(file)) as QuizData[];
-    console.log(parsedData);
     const formattedQuestions = parsedData
       .map((row: any) => {
         const title = row["Quiz title"]?.trim();
@@ -97,7 +100,7 @@ export default function Files() {
           .map((option: string) => option.trim());
         const explanation =
           row["HTML of the explanation to the answer"]?.trim();
-        const type = row["Question Type"]?.trim();
+        const type = row["Question type"]?.trim();
 
         // Return null if required fields are missing
         if (
@@ -121,8 +124,14 @@ export default function Files() {
         };
       })
       .filter((question) => question !== null); // Filter out null values
-    console.log(formattedQuestions);
+    // Assuming setQuizTitles expects an array of strings
+    const uniqueTitles = [
+      ...new Set(
+        (formattedQuestions as { title: string }[]).map((q) => q.title)
+      ),
+    ];
 
+    setQuizTitles(uniqueTitles);
     setIsLoading(false);
 
     if (formattedQuestions.length === 0) {
@@ -143,6 +152,7 @@ export default function Files() {
           explanation: string;
         }[]
       );
+      setShowSettingsDialog(true);
     }
   };
 
@@ -162,49 +172,41 @@ export default function Files() {
     const filteredQuestions = questions.filter((q) =>
       selectedTitles.includes(q.title)
     );
+
     if (filteredQuestions.length === 0) {
       toast.error(
         "No questions selected. Please check at least one quiz title."
       );
-      return;
+      return; // Do not close the settings dialog
     }
+
     // Apply settings and pass the questions and settings to the Quiz component
     const randomizedQuestions = [...filteredQuestions];
 
-    // Shuffle questions if necessary
     if (shuffleQuestions) {
       randomizedQuestions.sort(() => Math.random() - 0.5);
     }
     if (shuffleAnswers) {
       randomizedQuestions.forEach((question) => {
-        // Determine the index of the correct answer in the original options
         const correctAnswerIndex = ["A", "B", "C", "D"].indexOf(
           question.answer
         );
-
-        // Shuffle the options (create a copy to avoid mutating the original array)
         const shuffledOptions = [...question.options].sort(
           () => Math.random() - 0.5
         );
-
-        // After shuffle, find the new index of the original correct answer in the shuffled options
         const newCorrectAnswerIndex = shuffledOptions.indexOf(
           question.options[correctAnswerIndex]
         );
-
-        // Update the question's options and set the new correct answer based on the shuffled order
         question.options = shuffledOptions;
         question.answer = ["A", "B", "C", "D"][newCorrectAnswerIndex];
       });
     }
 
-    // Take only the selected number of questions
     const selectedQuestions = randomizedQuestions.slice(0, numberOfQuestions);
 
-    // Update the selected questions state
     setSelectedQuestions(selectedQuestions);
-    setQuizReady(true); // Set quiz ready to true
-    setShowSettingsDialog(false); // Close settings dialog after quiz generation
+    setQuizReady(true);
+    setShowSettingsDialog(false); // Close only if questions are selected
   };
   if (quizReady) {
     return (
@@ -296,8 +298,8 @@ export default function Files() {
         )}
       </Card>
       {showSettingsDialog && (
-        <div className="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-50 flex justify-center items-center z-10">
-          <Card className="w-128 p-6 bg-white rounded-lg shadow-xl">
+        <div className="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-50 flex justify-center items-center z-10 overflow-y-scroll">
+          <Card className="w-128 p-6 bg-white rounded-lg shadow-xl ">
             <CardTitle className="text-2xl mb-4">Quiz Settings</CardTitle>
             <div className="space-y-4 text-gray-900">
               <div>
@@ -340,6 +342,20 @@ export default function Files() {
                 Show answer and explanation after each question
               </div>
               <h3 className="text-lg font-bold">Select Quizzes</h3>
+              <div className="flex space-x-2 mb-2">
+                <Button
+                  onClick={() => setSelectedTitles(quizTitles)}
+                  className="bg-blue-500 text-white px-2 py-1 rounded"
+                >
+                  Select All
+                </Button>
+                <Button
+                  onClick={() => setSelectedTitles([])}
+                  className="bg-gray-500 text-white px-2 py-1 rounded"
+                >
+                  Unselect All
+                </Button>
+              </div>
               {quizTitles.map((title) => (
                 <div key={title} className="flex items-center">
                   <input
