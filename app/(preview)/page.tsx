@@ -94,8 +94,8 @@ export default function Files() {
         const question = row["HTML of the question"]?.trim();
         const answer = row["Answer"]?.trim();
         const options = row["Options, separated by |"]
-          ?.split("|")
-          .map((option: string) => option.trim());
+          ?.match(/(?:\\.|[^|])+/g) // Splits by "|" only if it is NOT escaped
+          ?.map((option: string) => option.replace(/\\\|/g, "|").trim()); // Remove "\" before "|"
         const explanation =
           row["HTML of the explanation to the answer"]?.trim();
         const type = row["Question type"]?.trim();
@@ -239,7 +239,9 @@ export default function Files() {
                 HTML formatting.
               </li>
               <li>
-                <b>Options (separated by |):</b> Possible answer choices.
+                <b>Options (separated by |):</b> Possible answer choices. If
+                there is a "|" inside the options, add a "\" before the
+                character to escape it.
               </li>
               <li>
                 <b>Answer:</b> The correct answer.
