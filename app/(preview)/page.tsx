@@ -298,9 +298,11 @@ export default function Files() {
         )}
       </Card>
       {showSettingsDialog && (
-        <div className="fixed top-0 left-0 right-0 bottom-0 bg-black bg-opacity-50 flex justify-center items-center z-10 overflow-y-scroll">
-          <Card className="w-128 p-6 bg-white rounded-lg shadow-xl ">
-            <CardTitle className="text-2xl mb-4">Quiz Settings</CardTitle>
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center z-10">
+          <Card className="w-128 p-6 bg-white rounded-lg shadow-xl max-h-[80vh] overflow-y-scroll">
+            <CardTitle className="text-2xl mb-4 text-black">
+              Quiz Settings
+            </CardTitle>
             <div className="space-y-4 text-gray-900">
               <div>
                 <label className="block">Number of Questions</label>
