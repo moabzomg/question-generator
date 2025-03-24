@@ -336,21 +336,21 @@ export default function Files() {
                 HTML formatting.
               </li>
               <li>
-                <b>Options:</b> Possible answer choices separated by "|". If
-                there is a "|" inside the option, add a "\" before the character
-                to escape it.
+                <b>Options:</b> Possible answer choices separated by \"|\". If
+                there is a \"|\" inside the option, add a \"\\" before the
+                character to escape it.
               </li>
               <li>
                 <b>Answer:</b> If the question is a multiple choice, the correct
                 answer should be single upper-case alphabet characters,
-                separated by "|" if more than one.
+                separated by \"|\" if more than one.
               </li>
               <li>
                 <b>HTML of the explanation:</b> A detailed explanation of the
                 correct answer.
               </li>
               <li>
-                <b>Question type:</b> Type of question ("mc" for multiple
+                <b>Question type:</b> Type of question (\"mc\" for multiple
                 choices).
               </li>
             </ul>
