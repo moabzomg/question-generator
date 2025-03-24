@@ -44,7 +44,7 @@ If any of the columns are incorrect in the question row, the quiz will omit the 
    - You can customise the number of questions to include in the quiz using a range slider.
    - Choose whether to shuffle the questions and the answer options.
    - Toggle whether to show the answer and explanation after each question.
-   - Choose whether to remove all className-related unwanted CSS styles inside the HTML code.
+   - Choose whether to remove all unwanted CSS styles inside the HTML code.
    - Filter questions by quiz titles.
 
 5. **Generate Quiz**  

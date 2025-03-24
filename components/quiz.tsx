@@ -95,7 +95,7 @@ const QuestionCard: React.FC<{
       </div>
 
       {/* Show explanation if isChecked is true */}
-      {isChecked && (
+      {isChecked && showAnswer && (
         <div className="mt-4 p-4 border border-gray-300 rounded bg-gray-100">
           <h3 className="font-semibold text-lg text-gray-700">Explanation:</h3>
           <p
@@ -307,19 +307,10 @@ export default function Quiz({ questions, clearCSV, showAnswer }: QuizProps) {
                       <QuizReview questions={questions} userAnswers={answers} />
                     </div>
                     <div className="flex justify-center space-x-4 pt-4">
-                      <Button
-                        onClick={handleReset}
-                        variant="outline"
-                        className="bg-muted hover:bg-muted/80 w-full"
-                      >
-                        <RefreshCw className="mr-2 h-4 w-4" /> Reset Quiz
+                      <Button onClick={handleReset} variant="secondary">
+                        Restart
                       </Button>
-                      <Button
-                        onClick={clearCSV}
-                        className="bg-primary hover:bg-primary/90 w-full"
-                      >
-                        <FileText className="mr-2 h-4 w-4" /> Try Another PDF
-                      </Button>
+                      <Button onClick={clearCSV}>Return to home page</Button>
                     </div>
                   </div>
                 )}

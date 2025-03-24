@@ -42,7 +42,7 @@ export default function Files() {
   const [shuffleQuestions, setShuffleQuestions] = useState(true);
   const [shuffleAnswers, setShuffleAnswers] = useState(true);
   const [showAnswer, setShowAnswer] = useState(true);
-  const [removeClassNames, setRemoveClassNames] = useState(true); // Add state for the checkbox
+  const [removeStyles, setRemoveStyles] = useState(true);
   const [quizReady, setQuizReady] = useState(false); // Track quiz rendering
   const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
 
@@ -51,8 +51,8 @@ export default function Files() {
     setNumberOfQuestions(Math.max(numberOfQuestions, selectedQuestions.length));
   }, [quizTitles, selectedQuestions]);
   // Add this helper function to remove all className attributes
-  const removeClassNamesFromHTML = (html: string) => {
-    return html.replace(/ class="[^"]*"/g, "");
+  const removeStylesFromHTML = (html: string) => {
+    return html.replace(/ style="[^"]*"/g, "");
   };
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
@@ -96,10 +96,10 @@ export default function Files() {
     const formattedQuestions = parsedData
       .map((row: any) => {
         const title = row["Quiz title"]?.trim();
-        const question = removeClassNamesFromHTML(
+        const question = removeStylesFromHTML(
           row["HTML of the question"]?.trim() || ""
         );
-        const explanation = removeClassNamesFromHTML(
+        const explanation = removeStylesFromHTML(
           row["HTML of the explanation to the answer"]?.trim() || ""
         );
         // Check if 'type' is equal to "mc"
@@ -457,11 +457,11 @@ export default function Files() {
               <div>
                 <input
                   type="checkbox"
-                  checked={removeClassNames}
-                  onChange={() => setRemoveClassNames(!removeClassNames)}
+                  checked={removeStyles}
+                  onChange={() => setRemoveStyles(!removeStyles)}
                   className="mr-2"
                 />
-                Remove class names from HTML
+                Remove CSS styles from HTML
               </div>
               <h3 className="text-lg font-bold">Select Quizzes</h3>
               <div className="flex space-x-2 mb-2">
