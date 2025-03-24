@@ -7,7 +7,7 @@ The Quiz Generator allows you to randomly create quizzes by importing a CSV file
 - **Quiz Title**
 - **HTML of the Question**
 - **Answer**
-- **Options** (separated by `|`)
+- **Options**
 - **HTML of the Explanation to the Answer**
 - **Question Type**
 
