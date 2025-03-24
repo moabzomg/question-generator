@@ -42,13 +42,18 @@ export default function Files() {
   const [shuffleQuestions, setShuffleQuestions] = useState(true);
   const [shuffleAnswers, setShuffleAnswers] = useState(true);
   const [showAnswer, setShowAnswer] = useState(true);
+  const [removeClassNames, setRemoveClassNames] = useState(true); // Add state for the checkbox
   const [quizReady, setQuizReady] = useState(false); // Track quiz rendering
   const [selectedQuestions, setSelectedQuestions] = useState<Question[]>([]);
 
   useEffect(() => {
     setSelectedTitles(quizTitles); // Set all titles as selected on mount
-  }, [quizTitles]);
-
+    setNumberOfQuestions(Math.max(numberOfQuestions, selectedQuestions.length));
+  }, [quizTitles, selectedQuestions]);
+  // Add this helper function to remove all className attributes
+  const removeClassNamesFromHTML = (html: string) => {
+    return html.replace(/ class="[^"]*"/g, "");
+  };
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const selectedFiles = Array.from(e.target.files || []);
     const validFiles = selectedFiles.filter(
@@ -91,21 +96,65 @@ export default function Files() {
     const formattedQuestions = parsedData
       .map((row: any) => {
         const title = row["Quiz title"]?.trim();
-        const question = row["HTML of the question"]?.trim();
-        const answer = row["Answer"]?.trim();
-        const options = row["Options, separated by |"]
-          ?.match(/(?:\\.|[^|])+/g) // Splits by "|" only if it is NOT escaped
-          ?.map((option: string) => option.replace(/\\\|/g, "|").trim()); // Remove "\" before "|"
-        const explanation =
-          row["HTML of the explanation to the answer"]?.trim();
-        const type = row["Question type"]?.trim();
+        const question = removeClassNamesFromHTML(
+          row["HTML of the question"]?.trim() || ""
+        );
+        const explanation = removeClassNamesFromHTML(
+          row["HTML of the explanation to the answer"]?.trim() || ""
+        );
+        // Check if 'type' is equal to "mc"
+        const type = row["Question type"]?.trim() === "mc" ? "mc" : "";
+        // Check 'answer' if 'type' is "mc" and ensure it's a valid sequence of non-repeating A-Z characters separated by "|"
+        const answer =
+          type === "mc" && /^[A-Z](?:\|[A-Z])*$/.test(row["Answer"]?.trim())
+            ? row["Answer"]
+                ?.trim()
+                .split("|")
+                .filter(
+                  (v: string, i: number, arr: string[]) => arr.indexOf(v) === i
+                ) // Ensure no repeating answers
+            : [];
 
+        // Check 'options', if there are fewer than or equal to 26 options, otherwise set it to an empty array
+        const options =
+          Array.isArray(row["Options"]) && row["Options"].length <= 26
+            ? row["Options"]
+            : [];
+
+        let currentOption = "";
+        let isEscaped = false;
+        if (row?.["Options, separated by |"]) {
+          for (let i = 0; i < row["Options, separated by |"].length; i++) {
+            const char = row["Options, separated by |"][i];
+
+            if (char === "\\" && !isEscaped) {
+              // Mark as escaped but don't add it yet
+              isEscaped = true;
+            } else if (char === "|" && !isEscaped) {
+              // If it's an unescaped '|', split
+              options.push(currentOption.trim());
+              currentOption = "";
+            } else {
+              // Normal character or escaped character
+              if (isEscaped && char !== "|") {
+                currentOption += "\\"; // Retain the escape if not escaping "|"
+              }
+              currentOption += char;
+              isEscaped = false;
+            }
+          }
+
+          // Add the last option
+          if (currentOption.trim() !== "") {
+            options.push(currentOption.trim());
+          }
+        }
         // Return null if required fields are missing
         if (
           !title ||
           !question ||
-          !answer ||
-          !options ||
+          answer.length == 0 ||
+          options.length == 0 ||
           !explanation ||
           !type
         ) {
@@ -134,7 +183,7 @@ export default function Files() {
 
     if (formattedQuestions.length === 0) {
       toast.error(
-        "No questions found in the CSV. The format might be incorrect. Please check again or use our template."
+        "No valid questions found in the CSV. The format might be incorrect. Please check again or use our template."
       );
     } else {
       toast.success(
@@ -146,11 +195,12 @@ export default function Files() {
           question: string;
           options: string[];
           type: string;
-          answer: string;
+          answer: string[];
           explanation: string;
         }[]
       );
       setShowSettingsDialog(true);
+      setNumberOfQuestions(formattedQuestions.length);
     }
   };
 
@@ -166,12 +216,49 @@ export default function Files() {
     }
   };
 
+  const handleCheckboxChange = (title: string) => {
+    setSelectedTitles((prev) => {
+      const updatedTitles = prev.includes(title)
+        ? prev.filter((t) => t !== title)
+        : [...prev, title];
+
+      // Recalculate the number of questions based on the selected quiz titles
+      const filteredQuestions = questions.filter((q) =>
+        updatedTitles.includes(q.title)
+      );
+      setNumberOfQuestions(filteredQuestions.length);
+
+      return updatedTitles;
+    });
+  };
+
+  // Handling Select All
+  const handleSelectAll = () => {
+    const allTitles = quizTitles; // Assuming quizTitles contains all available titles
+    setSelectedTitles(allTitles);
+    updateMaxQuestions(allTitles);
+  };
+  const updateMaxQuestions = (selectedTitles: string[]) => {
+    const filteredQuestions = questions.filter((q) =>
+      selectedTitles.includes(q.title)
+    );
+    setNumberOfQuestions(
+      filteredQuestions.length > 0 ? filteredQuestions.length : 1
+    );
+  };
+
+  // Handling Unselect All
+  const handleUnselectAll = () => {
+    setSelectedTitles([]);
+    setNumberOfQuestions(0);
+  };
+
   const handleGenerateQuiz = () => {
     const filteredQuestions = questions.filter((q) =>
       selectedTitles.includes(q.title)
     );
 
-    if (filteredQuestions.length === 0) {
+    if (selectedTitles.length === 0) {
       toast.error(
         "No questions selected. Please check at least one quiz title."
       );
@@ -186,17 +273,27 @@ export default function Files() {
     }
     if (shuffleAnswers) {
       randomizedQuestions.forEach((question) => {
-        const correctAnswerIndex = ["A", "B", "C", "D"].indexOf(
-          question.answer
-        );
+        var options: string[] = [];
+        for (let i = 0; i < question.options.length; i++) {
+          options.push(String.fromCharCode(65 + i)); // Generate answer labels like A, B, C, etc.
+        }
+
+        // Handle multiple correct answers, where `question.answer` is an array
+        const correctAnswerIndices = question.answer.map((answer) =>
+          options.indexOf(answer)
+        ); // Get indices of correct answers directly without using split()
         const shuffledOptions = [...question.options].sort(
           () => Math.random() - 0.5
-        );
-        const newCorrectAnswerIndex = shuffledOptions.indexOf(
-          question.options[correctAnswerIndex]
-        );
+        ); // Shuffle the options
+        const newCorrectAnswerIndices = correctAnswerIndices.map(
+          (index: number) => shuffledOptions.indexOf(question.options[index])
+        ); // Get new indices of the correct answers in the shuffled options
+
+        // Update the shuffled options and answers
         question.options = shuffledOptions;
-        question.answer = ["A", "B", "C", "D"][newCorrectAnswerIndex];
+        question.answer = newCorrectAnswerIndices.map(
+          (newIndex) => options[newIndex]
+        ); // Assign the correct answers as an array
       });
     }
 
@@ -239,26 +336,27 @@ export default function Files() {
                 HTML formatting.
               </li>
               <li>
-                <b>Options (separated by |):</b> Possible answer choices. If
-                there is a "|" inside the options, add a "\" before the
-                character to escape it.
+                <b>Options:</b> Possible answer choices separated by "|". If
+                there is a "|" inside the option, add a "\" before the character
+                to escape it.
               </li>
               <li>
-                <b>Answer:</b> The correct answer.
+                <b>Answer:</b> If the question is a multiple choice, the correct
+                answer should be single upper-case alphabet characters,
+                separated by "|" if more than one.
               </li>
               <li>
                 <b>HTML of the explanation:</b> A detailed explanation of the
                 correct answer.
               </li>
               <li>
-                <b>Question type:</b> Type of question (mc14 for 1 of 4 multiple
+                <b>Question type:</b> Type of question ("mc" for multiple
                 choices).
               </li>
             </ul>
           </div>
           <div className="text-center text-sm text-gray-200 mt-6">
-            You may also try our template with basic maths and English
-            questions.
+            You may also try our template.
           </div>
           <div className="mt-4">
             <a
@@ -305,16 +403,29 @@ export default function Files() {
             </CardTitle>
             <div className="space-y-4 text-gray-900">
               <div>
-                <label className="block">Number of Questions</label>
-                <input
-                  type="range"
-                  min="1"
-                  max={questions.length}
-                  value={numberOfQuestions}
-                  onChange={(e) => setNumberOfQuestions(Number(e.target.value))}
-                  className="w-full"
-                />
-                <span>{numberOfQuestions} questions</span>
+                {numberOfQuestions > 1 ? (
+                  <>
+                    <label className="block">Number of Questions</label>
+                    <input
+                      type="range"
+                      min="1"
+                      max={
+                        questions.filter((q) =>
+                          selectedTitles.includes(q.title)
+                        ).length || 1
+                      } // The max value is based on the filtered number of questions
+                      value={numberOfQuestions}
+                      onChange={
+                        (e) => setNumberOfQuestions(Number(e.target.value)) // Update the number of questions based on the range input
+                      }
+                      className="w-full"
+                    />
+                    <span>{numberOfQuestions} questions</span>{" "}
+                    {/* Display number of questions */}
+                  </>
+                ) : (
+                  <span>{numberOfQuestions} question</span>
+                )}
               </div>
               <div>
                 <input
@@ -343,16 +454,25 @@ export default function Files() {
                 />
                 Show answer and explanation after each question
               </div>
+              <div>
+                <input
+                  type="checkbox"
+                  checked={removeClassNames}
+                  onChange={() => setRemoveClassNames(!removeClassNames)}
+                  className="mr-2"
+                />
+                Remove class names from HTML
+              </div>
               <h3 className="text-lg font-bold">Select Quizzes</h3>
               <div className="flex space-x-2 mb-2">
                 <Button
-                  onClick={() => setSelectedTitles(quizTitles)}
+                  onClick={handleSelectAll} // On Select All
                   className="bg-blue-500 text-white px-2 py-1 rounded"
                 >
                   Select All
                 </Button>
                 <Button
-                  onClick={() => setSelectedTitles([])}
+                  onClick={handleUnselectAll} // On Unselect All
                   className="bg-gray-500 text-white px-2 py-1 rounded"
                 >
                   Unselect All
@@ -363,13 +483,7 @@ export default function Files() {
                   <input
                     type="checkbox"
                     checked={selectedTitles.includes(title)}
-                    onChange={() =>
-                      setSelectedTitles((prev) =>
-                        prev.includes(title)
-                          ? prev.filter((t) => t !== title)
-                          : [...prev, title]
-                      )
-                    }
+                    onChange={() => handleCheckboxChange(title)}
                     className="mr-2"
                   />
                   {title}

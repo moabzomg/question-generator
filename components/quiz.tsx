@@ -11,8 +11,8 @@ import {
   FileText,
 } from "lucide-react";
 import QuizScore from "./score";
-import QuizReview from "./quiz-overview";
 import { Question } from "@/lib/schemas";
+import QuizReview from "./quiz-overview";
 
 type QuizProps = {
   questions: Question[];
@@ -22,11 +22,24 @@ type QuizProps = {
 
 const QuestionCard: React.FC<{
   question: Question;
-  selectedAnswer: string | null;
+  selectedAnswers: string[]; // Should only contain one selected answer
   onSelectAnswer: (answer: string) => void;
   isChecked: boolean;
-}> = ({ question, selectedAnswer, onSelectAnswer, isChecked }) => {
-  const answerLabels = ["A", "B", "C", "D"];
+  correctAnswers: string[];
+  isSubmitted: boolean;
+  showAnswer: boolean;
+}> = ({
+  question,
+  selectedAnswers,
+  onSelectAnswer,
+  isChecked,
+  correctAnswers,
+  isSubmitted,
+  showAnswer,
+}) => {
+  const answerLabels = Array.from({ length: 26 }, (_, i) =>
+    String.fromCharCode(65 + i)
+  );
 
   return (
     <div className="space-y-6">
@@ -36,38 +49,52 @@ const QuestionCard: React.FC<{
       />
       <div className="grid grid-cols-1 gap-4">
         {question.options.map((option, index) => {
-          const isCorrect = answerLabels[index] === question.answer;
-          const isSelected = selectedAnswer === answerLabels[index];
+          const currentLabel = answerLabels[index];
+          const isCorrect = correctAnswers.includes(currentLabel);
+          const isSelected = selectedAnswers.includes(currentLabel);
+          const isIncorrectSelection = isSelected && !isCorrect;
 
           return (
             <Button
               key={index}
               variant={isSelected ? "secondary" : "outline"}
-              className={`h-auto py-6 px-4 justify-start text-left whitespace-normal ${
-                isChecked && isCorrect ? "bg-green-600 hover:bg-green-700" : ""
-              } ${
-                isChecked && isSelected && !isCorrect
-                  ? "bg-red-600 hover:bg-red-700"
-                  : ""
-              }`}
-              onClick={() => onSelectAnswer(answerLabels[index])}
-              disabled={isChecked} // Disable selection after checking
+              className={`h-auto py-6 px-4 justify-start text-left whitespace-normal
+                ${
+                  isChecked && isCorrect
+                    ? "bg-green-600 hover:bg-green-700"
+                    : ""
+                }
+                ${
+                  isChecked && isIncorrectSelection
+                    ? "bg-red-600 hover:bg-red-700"
+                    : ""
+                }
+                ${isChecked && !isSelected && isCorrect ? "bg-green-300" : ""}
+              `}
+              onClick={() => {
+                if (!isChecked) {
+                  onSelectAnswer(currentLabel); // Allows changing the selection
+                }
+              }}
+              disabled={isChecked} // Disable after checking
             >
               <span className="text-lg font-medium mr-4 shrink-0">
-                {answerLabels[index]}
+                {currentLabel}
               </span>
               <span className="flex-grow">{option}</span>
 
               {isChecked && isCorrect && (
                 <Check className="ml-2 text-white" size={20} />
               )}
-              {isChecked && isSelected && !isCorrect && (
+              {isChecked && isIncorrectSelection && (
                 <X className="ml-2 text-white" size={20} />
               )}
             </Button>
           );
         })}
       </div>
+
+      {/* Show explanation if isChecked is true */}
       {isChecked && (
         <div className="mt-4 p-4 border border-gray-300 rounded bg-gray-100">
           <h3 className="font-semibold text-lg text-gray-700">Explanation:</h3>
@@ -83,13 +110,14 @@ const QuestionCard: React.FC<{
 
 export default function Quiz({ questions, clearCSV, showAnswer }: QuizProps) {
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [answers, setAnswers] = useState<string[]>(
-    Array(questions.length).fill(null)
+  const [answers, setAnswers] = useState<string[][]>(
+    Array(questions.length).fill([])
   );
   const [isChecked, setIsChecked] = useState(false);
   const [isSubmitted, setIsSubmitted] = useState(false);
   const [score, setScore] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
+  const [errorMessage, setErrorMessage] = useState<string>("");
 
   useEffect(() => {
     setProgress((currentQuestionIndex / questions.length) * 100);
@@ -98,13 +126,53 @@ export default function Quiz({ questions, clearCSV, showAnswer }: QuizProps) {
   const handleSelectAnswer = (answer: string) => {
     if (!isChecked) {
       const newAnswers = [...answers];
-      newAnswers[currentQuestionIndex] = answer;
+      const currentAnswers = newAnswers[currentQuestionIndex] || [];
+      const correctAnswerCount = questions[currentQuestionIndex].answer.length;
+
+      // If there are multiple correct answers, allow for adding/removing answers
+      if (correctAnswerCount > 1) {
+        if (currentAnswers.includes(answer)) {
+          // If answer is already selected, remove it
+          newAnswers[currentQuestionIndex] = currentAnswers.filter(
+            (a) => a !== answer
+          );
+        } else {
+          // If answer is not selected, check if the user is trying to select more than the allowed answers
+          if (currentAnswers.length < correctAnswerCount) {
+            newAnswers[currentQuestionIndex] = [...currentAnswers, answer];
+          } else {
+            // Show error if the user tries to select more answers than allowed
+            setErrorMessage(
+              `You can only select ${correctAnswerCount} answer${
+                correctAnswerCount > 1 ? "s" : ""
+              }. Please deselect a previous answer before adding a new one.`
+            );
+          }
+        }
+      } else {
+        // Single correct answer scenario: Only 1 answer can be selected at a time
+        newAnswers[currentQuestionIndex] = [answer]; // Reset to only the selected answer
+      }
+
       setAnswers(newAnswers);
     }
   };
 
   const handleCheckAnswer = () => {
-    setIsChecked(true);
+    const correctAnswerCount = questions[currentQuestionIndex].answer.length;
+    const selectedAnswersForCurrentQuestion =
+      answers[currentQuestionIndex] || [];
+
+    if (selectedAnswersForCurrentQuestion.length !== correctAnswerCount) {
+      setErrorMessage(
+        `You must select exactly ${correctAnswerCount} answer${
+          correctAnswerCount > 1 ? "s" : ""
+        }.`
+      );
+    } else {
+      setIsChecked(true);
+      setErrorMessage(""); // Clear error message on valid selection
+    }
   };
 
   const handleNextQuestion = () => {
@@ -130,18 +198,29 @@ export default function Quiz({ questions, clearCSV, showAnswer }: QuizProps) {
   const handleSubmit = () => {
     setIsSubmitted(true);
     const correctAnswers = questions.reduce((acc, question, index) => {
-      return acc + (question.answer === answers[index] ? 1 : 0);
+      const selectedAnswersForQuestion = answers[index] || [];
+      const correctAnswerSet = new Set(question.answer);
+      const selectedAnswerSet = new Set(selectedAnswersForQuestion);
+
+      return (
+        acc +
+        (selectedAnswerSet.size === correctAnswerSet.size &&
+        [...selectedAnswerSet].every((answer) => correctAnswerSet.has(answer))
+          ? 1
+          : 0)
+      );
     }, 0);
     setScore(correctAnswers);
   };
 
   const handleReset = () => {
-    setAnswers(Array(questions.length).fill(null));
+    setAnswers(Array(questions.length).fill([]));
     setIsChecked(false);
     setIsSubmitted(false);
     setScore(null);
     setCurrentQuestionIndex(0);
     setProgress(0);
+    setErrorMessage("");
   };
 
   const currentQuestion = questions[currentQuestionIndex];
@@ -155,8 +234,12 @@ export default function Quiz({ questions, clearCSV, showAnswer }: QuizProps) {
               Question {currentQuestionIndex + 1}: {currentQuestion.title}
             </h1>
             <div className="text-center mb-4">
-              {currentQuestion.type === "mc14" && (
-                <div>Choose 1 answer from the available options</div>
+              {currentQuestion.type === "mc" && (
+                <div>
+                  Choose {currentQuestion.answer.length} answer
+                  {currentQuestion.answer.length > 1 ? "s " : " "}
+                  from the available options
+                </div>
               )}
             </div>
           </>
@@ -177,10 +260,18 @@ export default function Quiz({ questions, clearCSV, showAnswer }: QuizProps) {
                   <div className="space-y-8">
                     <QuestionCard
                       question={currentQuestion}
-                      selectedAnswer={answers[currentQuestionIndex]}
+                      selectedAnswers={answers[currentQuestionIndex]}
                       onSelectAnswer={handleSelectAnswer}
                       isChecked={isChecked}
+                      correctAnswers={currentQuestion.answer}
+                      isSubmitted={isSubmitted}
+                      showAnswer={showAnswer} // Pass showAnswer prop
                     />
+                    {errorMessage && (
+                      <div className="text-red-600 text-center mt-4">
+                        {errorMessage}
+                      </div>
+                    )}
                     <div className="flex justify-between items-center pt-4">
                       <Button
                         onClick={handlePreviousQuestion}
@@ -194,7 +285,7 @@ export default function Quiz({ questions, clearCSV, showAnswer }: QuizProps) {
                       </span>
                       <Button
                         onClick={handleNextQuestion}
-                        disabled={answers[currentQuestionIndex] === null}
+                        disabled={answers[currentQuestionIndex].length === 0}
                         variant="ghost"
                       >
                         {isChecked
@@ -207,10 +298,30 @@ export default function Quiz({ questions, clearCSV, showAnswer }: QuizProps) {
                     </div>
                   </div>
                 ) : (
-                  <QuizScore
-                    correctAnswers={score ?? 0}
-                    totalQuestions={questions.length}
-                  />
+                  <div className="space-y-8">
+                    <QuizScore
+                      correctAnswers={score ?? 0}
+                      totalQuestions={questions.length}
+                    />
+                    <div className="space-y-12">
+                      <QuizReview questions={questions} userAnswers={answers} />
+                    </div>
+                    <div className="flex justify-center space-x-4 pt-4">
+                      <Button
+                        onClick={handleReset}
+                        variant="outline"
+                        className="bg-muted hover:bg-muted/80 w-full"
+                      >
+                        <RefreshCw className="mr-2 h-4 w-4" /> Reset Quiz
+                      </Button>
+                      <Button
+                        onClick={clearCSV}
+                        className="bg-primary hover:bg-primary/90 w-full"
+                      >
+                        <FileText className="mr-2 h-4 w-4" /> Try Another PDF
+                      </Button>
+                    </div>
+                  </div>
                 )}
               </motion.div>
             </AnimatePresence>
