@@ -2,6 +2,8 @@
 
 ![Home page](public/Home.png)
 
+![Quiz Generator Demo](https://question-generator-phi.vercel.app/)
+
 The Quiz Generator allows you to randomly create quizzes by importing a CSV file containing a question bank. The CSV must have the following header row:
 
 - **Quiz Title**
