@@ -93,68 +93,67 @@ If there is a "|" inside an option, add a "\" before the character to escape it.
 
 ## Sample Python Code to Generate CSV
 
-This Python script automates the process of logging into a system and extracting quiz questions to generate a CSV file. It uses `pyppeteer`, a Python library to control a headless browser (Chromium) to automate web actions like logging in, selecting modules, and extracting questions.
+This Python script automates the process of logging into a system and extracting quiz questions to generate a CSV file. It uses `Selenium`, a Python library for browser automation, to perform web actions like logging in, selecting modules, and extracting questions.
 
 ### Prerequisites
 
 You will need to install the required dependencies for the script to run:
 
-1. **Install `pyppeteer` and other dependencies**:
+1. **Install `selenium` and other dependencies**:
 
    ```bash
-   pip install pyppeteer
+   pip install selenium
    ```
 
 2. Dependencies:
-   - `pyppeteer` for browser automation.
-   - csv (standard Python library) for writing the extracted questions to a CSV file.
+   - `selenium` for browser automation.
+   - `csv` (standard Python library) for writing the extracted questions to a CSV file.
 
 ### Customizing the Script
 
-In the code, you can customize the following variables for your needs:
+In the code, you can customise the following variables for your needs:
 
 ```
-email = "myemail@gmail.com" # Your login email
-password = "mypassword" # Your login password
-url = "http://example.com" # The URL of the system you're logging into
-module = "mymodule" # The module name you want to select
-email: Enter your email address here.
-password: Enter your password here.
-url: Replace the URL with the login page URL of the system you need to access.
-module: Set the module name you wish to extract questions from.
+email = "myemail@gmail.com"  # Your login email
+password = "mypassword"  # Your login password
+url = "http://example.com"  # The URL of the system you're logging into
+module = "mymodule"  # The module name you want to select
 ```
+
+- `email`: Enter your email address here.
+- `password`: Enter your password here.
+- `url`: Replace the URL with the login page URL of the system you need to access.
+- `module`: Set the module name you wish to extract questions from.
 
 ### How to Use
 
-1. Run the Script:
+1. **Ensure that you have Python 3.x installed and the required dependencies (`selenium`) installed as mentioned above.**
+2. **Set up the WebDriver**:
+   - Download and install the appropriate WebDriver for your browser (e.g., ChromeDriver for Google Chrome).
+   - Ensure the WebDriver is accessible from your system PATH.
+3. **Run the script**:
 
-   - Ensure that you have Python 3.x installed and the required dependencies (pyppeteer) installed as mentioned above.
-   - Run the script:
-
-```
-python generateQuestions.py
-```
+   ```bash
+   python generateQuestions.py
+   ```
 
 The script will:
 
-1.  Open a Chromium browser.
+1.  Open a web browser using Selenium.
 2.  Navigate to the login URL.
 3.  Input the email and password to log in.
 4.  Accept cookies if prompted.
 5.  Select the specified module.
 6.  Extract all quiz questions and options.
-7.  Write the extracted data to a questionBank.csv file.
-8.  Check the Output:
+7.  Write the extracted data to a `questionBank.csv` file.
 
-    - After running the script, check the questionBank.csv file. It will contain the following columns:
-      - Quiz title: The title of the quiz.
-      - HTML of the question: The complete HTML content of each question.
-      - Answer: The correct single upper-case alphabet answer for the question.
-      - Options: A list of answer options, separated by |.
-      - HTML of the explanation: The full HTML content for the explanation of the answer.
-      - Question type: In this case, "mc" for multiple-choice questions.
+### Output
 
-### Notes
+After running the script, check the `questionBank.csv` file. It will contain the following columns:
 
-- The script runs in a non-headless mode by default (headless=False), meaning it will open the browser window for debugging. If you want it to run in the background without opening a browser window, change headless=False to headless=True in the code.
-- Ensure the correct module name is used for selection in the system (this is defined by the module variable).
+- **Quiz title**: The title of the quiz.
+- **HTML of the question**: The complete HTML content of each question.
+- **Answer**: The correct single upper-case alphabet answer for the question.
+- **Options**: A list of answer options, separated by `|`.
+- **HTML of the explanation**: The full HTML content for the explanation of the answer.
+- **Question type**: In this case, "mc" for multiple-choice questions.
