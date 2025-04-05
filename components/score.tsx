@@ -4,11 +4,15 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 interface QuizScoreProps {
   correctAnswers: number;
   totalQuestions: number;
+  scoreByTopic?: Record<string, number>;
+  totalByTopic?: Record<string, number>;
 }
 
 export default function QuizScore({
   correctAnswers,
   totalQuestions,
+  scoreByTopic,
+  totalByTopic,
 }: QuizScoreProps) {
   const score = (correctAnswers / totalQuestions) * 100;
   const roundedScore = Math.round(score);
@@ -23,7 +27,7 @@ export default function QuizScore({
 
   return (
     <Card className="w-full">
-      <CardContent className="space-y-4 p-8">
+      <CardContent className="space-y-6 p-8">
         <div className="text-center">
           <p className="text-4xl font-bold">{roundedScore}%</p>
           <p className="text-sm text-muted-foreground">
@@ -31,6 +35,27 @@ export default function QuizScore({
           </p>
         </div>
         <p className="text-center font-medium">{getMessage()}</p>
+
+        {/* 👇 Topic breakdown */}
+        {scoreByTopic && totalByTopic && (
+          <div className="space-y-4 mt-6">
+            <h3 className="text-lg font-semibold">Score by Topic</h3>
+            <ul className="space-y-2">
+              {Object.entries(scoreByTopic).map(([topic, score]) => {
+                const total = totalByTopic[topic] || 0;
+                const percent = total ? Math.round((score / total) * 100) : 0;
+                return (
+                  <li key={topic} className="flex justify-between items-center">
+                    <span>{topic}</span>
+                    <span className="font-medium">
+                      {score}/{total} ({percent}%)
+                    </span>
+                  </li>
+                );
+              })}
+            </ul>
+          </div>
+        )}
       </CardContent>
     </Card>
   );

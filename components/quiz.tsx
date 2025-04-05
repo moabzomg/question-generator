@@ -118,6 +118,8 @@ export default function Quiz({ questions, clearCSV, showAnswer }: QuizProps) {
   const [score, setScore] = useState<number | null>(null);
   const [progress, setProgress] = useState(0);
   const [errorMessage, setErrorMessage] = useState<string>("");
+  const [scoreByTopic, setScoreByTopic] = useState<Record<string, number>>({});
+  const [totalByTopic, setTotalByTopic] = useState<Record<string, number>>({});
 
   useEffect(() => {
     setProgress((currentQuestionIndex / questions.length) * 100);
@@ -197,20 +199,30 @@ export default function Quiz({ questions, clearCSV, showAnswer }: QuizProps) {
 
   const handleSubmit = () => {
     setIsSubmitted(true);
-    const correctAnswers = questions.reduce((acc, question, index) => {
-      const selectedAnswersForQuestion = answers[index] || [];
-      const correctAnswerSet = new Set(question.answer);
-      const selectedAnswerSet = new Set(selectedAnswersForQuestion);
+    let correct = 0;
+    const topicCorrect: Record<string, number> = {};
+    const topicTotal: Record<string, number> = {};
 
-      return (
-        acc +
-        (selectedAnswerSet.size === correctAnswerSet.size &&
-        [...selectedAnswerSet].every((answer) => correctAnswerSet.has(answer))
-          ? 1
-          : 0)
-      );
-    }, 0);
-    setScore(correctAnswers);
+    questions.forEach((question, index) => {
+      const selected = answers[index] || [];
+      const correctSet = new Set(question.answer);
+      const selectedSet = new Set(selected);
+      const isCorrect =
+        selectedSet.size === correctSet.size &&
+        [...selectedSet].every((a) => correctSet.has(a));
+
+      if (isCorrect) correct++;
+
+      // Grouping by topic (title)
+      const topic = question.title;
+      topicCorrect[topic] =
+        topicCorrect[topic] + (isCorrect ? 1 : 0) || (isCorrect ? 1 : 0);
+      topicTotal[topic] = topicTotal[topic] + 1 || 1;
+    });
+
+    setScore(correct);
+    setScoreByTopic(topicCorrect);
+    setTotalByTopic(topicTotal);
   };
 
   const handleReset = () => {
@@ -275,7 +287,10 @@ export default function Quiz({ questions, clearCSV, showAnswer }: QuizProps) {
                     <div className="flex justify-between items-center pt-4">
                       <Button
                         onClick={handlePreviousQuestion}
-                        disabled={currentQuestionIndex === 0}
+                        disabled={
+                          currentQuestionIndex === 0 ||
+                          (isChecked && showAnswer)
+                        }
                         variant="ghost"
                       >
                         <ChevronLeft className="mr-2 h-4 w-4" /> Previous
@@ -302,6 +317,8 @@ export default function Quiz({ questions, clearCSV, showAnswer }: QuizProps) {
                     <QuizScore
                       correctAnswers={score ?? 0}
                       totalQuestions={questions.length}
+                      scoreByTopic={scoreByTopic}
+                      totalByTopic={totalByTopic}
                     />
                     <div className="space-y-12">
                       <QuizReview questions={questions} userAnswers={answers} />
