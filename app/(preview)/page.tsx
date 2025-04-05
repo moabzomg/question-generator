@@ -40,7 +40,7 @@ export default function Files() {
   const [showSettingsDialog, setShowSettingsDialog] = useState(false);
   const [numberOfQuestions, setNumberOfQuestions] = useState(1);
   const [shuffleQuestions, setShuffleQuestions] = useState(true);
-  const [shuffleAnswers, setShuffleAnswers] = useState(true);
+  const [shuffleAnswers, setShuffleAnswers] = useState(false);
   const [showAnswer, setShowAnswer] = useState(true);
   const [removeStyles, setRemoveStyles] = useState(true);
   const [quizReady, setQuizReady] = useState(false); // Track quiz rendering
