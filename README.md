@@ -57,9 +57,22 @@ If any of the columns are incorrect in the question row, the quiz will omit the 
 
 ![Quiz](public/Quiz.png)
 
-7. **View the Result**
+## 7. **View the Result**
+
+After completing the quiz, you will be able to view your results, including:
+
+- **Score**: Your overall score is displayed as a percentage, along with the number of correct answers out of the total questions.
+- **Message**: Based on your score, a personalized message will appear to encourage you and provide feedback on your performance.
+- **Score by Topic**: If the quiz is divided by topics, you will see the score for each topic to understand your strengths and areas to improve.
+
+### Result Page
 
 ![Result](public/Result.png)
+
+- **Restart**: You can restart the quiz to retake the questions.
+- **Return to Home**: You can go back to the home page to start a new session or quiz.
+
+Make sure to review the explanation for each question on the quiz overview page if needed, as this can help improve understanding of the material.
 
 ### Example CSV Format
 
